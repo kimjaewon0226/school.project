@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점메추 - 선택 룰렛</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0px;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            margin-left: 100px;
+        }
+
+        .logo a {
+            text-decoration: none;
+            font-size: 40px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .roulette-title {
+            font-weight: bold;
+            font-size: 36px;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            margin-right: 100px;
+        }
+
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: #333;
+            margin: 3px 0;
+        }
+
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -340px;
+            width: 300px;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-links .logo {
+            margin-bottom: 60px;
+        }
+
+        .nav-links .logo a {
+            font-size: 35px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            padding: 10px 0;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+            width: 100%;
+        }
+
+        .nav-links.active {
+            right: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .search-box {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .result {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 300px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .delete-btn {
+            width: 20px;
+            height: 20px;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cGF0aCBkPSJNMTAgMTAgTDEwIDYwIEwxMDAgNjAgTDEwIDEwIEwxMCAxMCAiIGZpbGw9IiM4ODg4ODgiLz48L3N2Zz4=') no-repeat center;
+            background-size: cover;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            width: 300px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        #resultsContainer {
+            position: fixed;
+            top: 180px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: transform 0.5s ease;
+            z-index: 100;
+            padding: 10px 20px;
+            width: 320px;
+            height: 500px;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+            border-right: 1px solid #ffffff00;
+            background-color: #ffffff00;
+            border: 2px solid #000000;
+            border-radius: 10px;
+        }
+
+        #canvasContainer {
+            position: fixed;
+            top: 100px;
+            right: -100%;
+            width: calc(100% - 300px);
+            height: calc(100vh - 200px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff00;
+            transition: right 0.5s ease;
+        }
+
+        canvas {
+            border: 1px solid #ddd;
+            width: 600px;
+            height: 600px;
+            margin-left: 15%;
+        }
+
+        #spinButton, #stopButton {
+            display: none;
+        }
+
+        /* Profile and Authentication Menus */
+        .profile-menu, .auth-menu {
+            display: none;
+            margin-right: -28%;
+            margin-left: -10%;
+        }
+
+        .profile-menu a, .auth-menu a {
+            padding: 10px;
+            font-size: 18px;
+            text-decoration: none;
+            color: #333;
+            margin-right: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+
+        <div>
+            <p class="roulette-title"> 선택 룰렛</p>
+        </div>
+
+        <!-- 로그인 상태에 따라 변경되는 메뉴 추가 -->
+        <div class="profile-menu" id="profileMenu">
+            <a href="profile.html">프로필</a>
+            <a href="logout.html" onclick="logout()">로그아웃</a>
+        </div>
+
+        <div class="auth-menu" id="authMenu">
+            <a href="login.html">로그인</a>
+            <a href="register.html">회원가입</a>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <div class="nav-links" id="navLinks">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+        <a href="notice.html">공지사항</a>
+        <a href="index.html" onclick="toggleSubmenu('boardSubmenu')">게시판</a>
+        <div class="submenu" id="boardSubmenu">
+            <ul class="submenu-content">
+                <li><a href="freeboard.html">자유게시판</a></li>
+                <li><a href="recommendboard.html">추천게시판</a></li>
+            </ul>
+        </div>
+        <a href="suggestions.html">건의사항</a>
+        <a href="instructions.html">이용방법</a>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <div id="resultsContainer">
+        <!-- 검색 결과들이 여기에 쌓일 공간 -->
+    </div>
+
+    <div id="canvasContainer">
+        <canvas id="rouletteCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="검색어를 입력하세요">
+        <button onclick="displayResult()">입력</button>
+        <button onclick="createRoulette()">만들기</button>
+        <button id="spinButton" onclick="spinRoulette()">돌리기</button>
+        <button id="stopButton" onclick="stopRoulette()">멈추기</button>
+    </div>
+
+    <script>
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.getElementById('navLinks');
+        const overlay = document.getElementById('overlay');
+        const profileMenu = document.getElementById('profileMenu');
+        const authMenu = document.getElementById('authMenu');
+    
+        // 로그인 상태를 가정
+        const isLoggedIn = false; // true로 설정하여 로그인 상태 가정
+    
+        function toggleMenu() {
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+    
+        // 로그인 상태에 따라 메뉴 표시
+        if (isLoggedIn) {
+            profileMenu.style.display = 'block';
+            authMenu.style.display = 'none'; // 인증 메뉴 숨김
+        } else {
+            profileMenu.style.display = 'none'; // 프로필 메뉴 숨김
+            authMenu.style.display = 'block';
+        }
+    
+        function logout() {
+            localStorage.setItem('isLoggedIn', 'false');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+</body>
+</html>

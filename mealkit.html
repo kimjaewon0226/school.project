@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점메추-밀키트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+        .logo {
+            font-size: 40px;
+            font-weight: bold;
+            margin-left: 100px;
+        }
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+        }
+        header h1 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+            margin-right: 100px;
+            font-size: 24px;
+        }
+        .hamburger {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            margin-right: 100px;
+        }
+        .hamburger div {
+            background-color: white;
+            height: 3px;
+            width: 30px;
+            margin: 3px 0;
+            border-radius: 2px;
+        }
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 250px;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+        .nav-links .logo {
+            margin-bottom: 60px;
+        }
+        .nav-links .logo a {
+            font-size: 35px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+        .nav-links a {
+            padding: 10px 0;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+            width: 100%;
+        }
+        .nav-links.active {
+            right: 0;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .board-menu {
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #f4f4f4;
+        }
+        .board-menu a {
+            padding: 10px 0;
+            font-size: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+        .board-menu.active {
+            display: flex;
+        }
+        .submenu {
+            display: none; /* 기본적으로 숨김 */
+            padding: 10px;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+            max-height: 0; /* 초기 상태에서는 숨김 */
+        }
+        .submenu.active {
+            display: block;
+            max-height: 200px; /* 활성화되면 표시 */
+        }
+        .submenu-content {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .submenu-content li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .submenu-content li:last-child {
+            border-bottom: none;
+        }
+        main {
+            padding: 20px;
+            margin-left: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .table-container {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+            position: relative;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+            cursor: pointer;
+        }
+        th.number, td.number {
+            width: 60px;
+            text-align: center;
+        }
+        .add-button-container {
+            display: flex;
+            justify-content: center; /* 가운데 정렬 */
+            align-items: center;
+            margin: 20px 0; /* 위아래 여백 */
+        }
+        .add-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px; /* 버튼과 폼 사이 여백 */
+        }
+        .add-button:hover {
+            background-color: #45a049;
+        }
+        .add-form {
+            display: flex;
+            flex-direction: column;
+            max-width: 500px;
+            width: 100%;
+            display: none; /* 기본적으로 숨김 */
+        }
+        .add-form input, .add-form button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .add-form input[type="url"] {
+        }
+        .add-form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .add-form button:hover {
+            background-color: #45a049;
+        }
+        .filter-container {
+            margin: 20px 0;
+            max-width: 300px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        .filter-container input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 80%;
+            margin-right: 10px;
+        }
+        .filter-container button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+        }
+        .filter-container button:hover {
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .pagination-container {
+            display: flex;
+            justify-content: center; /* 가운데 정렬 */
+            align-items: center;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .pagination {
+            display: flex;
+            align-items: center;
+        }
+        .pagination button, .add-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .pagination button:hover, .add-button:hover {
+            background-color: #45a049;
+        }
+        .pagination button.disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+        @media screen and (max-width: 600px) {
+            #map {
+                height: 300px;
+            }
+            main {
+                margin-left: 0;
+            }
+        }
+        td button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 5px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        td button:hover {
+            background-color: #45a049;
+        }
+        td button:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+        }
+
+        .profile-menu, .auth-menu {
+            margin-right: -55%;
+            display: none; /* 기본적으로 숨김 */
+        }
+
+        .profile-menu a, .auth-menu a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .auth-menu a:hover {
+            text-decoration: underline; /* hover 시 밑줄 추가 */
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+
+        <div class="profile-menu" id="profileMenu">
+            <a href="profile.html">프로필</a>
+            <a href="logout.html" onclick="logout()">로그아웃</a>
+        </div>
+
+        <div class="auth-menu" id="authMenu">
+            <a href="login.html">로그인</a>
+            <a href="register.html">회원가입</a>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <div class="nav-links" id="navLinks">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+        <a href="notice.html">공지사항</a>
+        <a href="index.html" onclick="toggleSubmenu()">게시판</a>
+        <div class="submenu" id="boardSubmenu">
+            <ul class="submenu-content">
+                <li><a href="freeboard.html">자유게시판</a></li>
+                <li><a href="recommendboard.html">추천게시판</a></li>
+            </ul>
+        </div>
+        <a href="suggestions.html">건의사항</a>
+        <a href="instructions.html">이용방법</a>
+
+        <!-- 로그인 폼 추가 -->
+        <div id="loginForm" style="display: none;">
+            <h3>로그인</h3>
+            <input type="text" id="username" placeholder="아이디" required>
+            <input type="password" id="password" placeholder="비밀번호" required>
+            <button onclick="login()">로그인</button>
+            <div class="error-message" id="loginErrorMessage" style="color: red;"></div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <main>
+        <div class="filter-container">
+            <input type="text" id="search" placeholder="찾고싶은 밀키트를 검색해주세요.">
+            <button onclick="filterItems()">검색</button>
+        </div>
+        <div class="table-container">
+            <table id="itemTable">
+                <thead>
+                    <tr>
+                        <th class="number">ID</th>
+                        <th>이름</th>
+                        <th>링크</th>
+                        <th>작업</th>
+                    </tr>
+                </thead>
+                <tbody id="itemTableBody">
+                    <!-- 데이터는 JavaScript로 삽입됩니다. -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination-container">
+            <div class="pagination">
+                <button id="prevButton" onclick="prevPage()">이전</button>
+                <button id="nextButton" onclick="nextPage()">다음</button>
+            </div>
+
+            <div class="add-button-container">
+                <button class="add-button" onclick="toggleForm()">추가</button>
+                <form id="addForm" class="add-form">
+                    <input type="text" id="itemName" placeholder="밀키트 이름" required>
+                    <input type="url" id="itemLink" placeholder="링크(URL)" required>
+                    <button type="submit">저장</button>
+                    <div class="error-message" id="errorMessage"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let isLoggedIn = false; // 로그인 상태를 가정
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const overlay = document.getElementById('overlay');
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            updateProfileMenu();
+            updateAuthMenu();
+        }
+
+        function logout() {
+            isLoggedIn = false; // 로그아웃 처리
+            updateProfileMenu();
+            updateAuthMenu();
+        }
+
+        function updateProfileMenu() {
+            const profileMenu = document.getElementById('profileMenu');
+            profileMenu.style.display = isLoggedIn ? 'block' : 'none'; // 로그인 상태에 따라 표시
+        }
+
+        function updateAuthMenu() {
+            const authMenu = document.getElementById('authMenu');
+            authMenu.style.display = isLoggedIn ? 'none' : 'block'; // 로그인 상태에 따라 숨김
+            document.getElementById('loginForm').style.display = isLoggedIn ? 'none' : 'block'; // 로그인 상태에 따라 폼 숨김
+        }
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('loginErrorMessage');
+
+            // 간단한 로그인 확인 (실제 구현 시 서버와 통신해야 함)
+            if (username === "test" && password === "1234") {
+                isLoggedIn = true;
+                updateProfileMenu();
+                updateAuthMenu();
+                document.getElementById('loginForm').style.display = 'none'; // 로그인 후 폼 숨김
+            } else {
+                errorMessage.textContent = "아이디 또는 비밀번호가 잘못되었습니다.";
+            }
+        }
+
+        window.onload = function() {
+            updateProfileMenu();
+            updateAuthMenu(); // 페이지 로드 시 로그인 상태에 따른 메뉴 업데이트
+        };
+    </script>
+</body>
+</html>

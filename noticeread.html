@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글 상세 보기</title>
+    <style>
+        /* Reset CSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        a {
+            text-decoration: none;
+            color: #000000;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0px;
+            background-color: #ffffff;
+            color: #fffdfd;
+        }
+
+        .logo a {
+            font-size: 40px;
+            font-weight: bold;
+            color: #000000;
+            padding-left: 90px; /* 원하는 만큼의 여백을 설정 */
+        }
+
+        .profile-menu, .auth-menu {
+            display: none;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: #000000;
+            margin: 3px 0;
+            margin-right: 70px;
+        }
+
+        /* Navigation Menu */
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 250px;
+            height: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            transition: right 0.4s ease;
+            z-index: 1000;
+        }
+
+        .nav-links.active {
+            right: 0;
+        }
+
+        .nav-links a {
+            color: #fff;
+            display: block;
+            padding: 10px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .nav-links a:hover {
+            background-color: #444;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+            z-index: 900;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Post Content */
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .post-content {
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .post-content h2 {
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .post-content p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .back-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #000000;
+            color: #fff;
+            border-radius: 5px;
+            text-align: center;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: #000000;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 10px;
+            }
+
+            .logo a {
+                font-size: 28px;
+            }
+
+            .hamburger div {
+                width: 20px;
+            }
+
+            .nav-links {
+                width: 200px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .post-content {
+                padding: 15px;
+            }
+
+            .post-content h2 {
+                font-size: 22px;
+            }
+
+            .post-content p {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <!-- Navigation Menu -->
+    <div class="nav-links" id="navLinks">
+        <a href="index.html">점메추</a>
+        <a href="notice.html">공지사항</a>
+        <a href="freeboard.html">자유게시판</a>
+        <a href="recommendboard.html">추천게시판</a>
+        <a href="suggestions.html">건의사항</a>
+        <a href="instructions.html">이용방법</a>
+    </div>
+
+    <!-- Overlay for Menu -->
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>글 상세 보기</h1>
+        <div class="post-content">
+            <h2 id="post-title"></h2>
+            <p id="post-body"></p>
+        </div>
+        <a href="notice.html" class="back-link">목록으로 돌아가기</a>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const overlay = document.getElementById('overlay');
+            navLinks.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // 작성한 글 데이터 (예시 데이터)
+        const posts = [
+            {
+                id: 1,
+                title: '글 제목 1',
+                body: '이것은 작성한 글 1의 내용입니다.'
+            },
+            {
+                id: 2,
+                title: '글 제목 2',
+                body: '이것은 작성한 글 2의 내용입니다.'
+            },
+            {
+                id: 3,
+                title: '글 제목 3',
+                body: '이것은 작성한 글 3의 내용입니다.'
+            }
+        ];
+
+        // URL에서 쿼리 파라미터로 전달된 ID 값을 가져옴
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('id');
+
+        const postTitle = document.getElementById('post-title');
+        const postBody = document.getElementById('post-body');
+
+        if (postId) {
+            // 글 ID로 해당 글을 찾음
+            const post = posts.find(p => p.id == postId);
+            if (post) {
+                // 제목과 내용을 화면에 표시
+                postTitle.innerText = post.title;
+                postBody.innerText = post.body;
+            } else {
+                postTitle.innerText = '글을 찾을 수 없습니다.';
+                postBody.innerText = '';
+            }
+        } else {
+            postTitle.innerText = '글을 찾을 수 없습니다.';
+            postBody.innerText = '';
+        }
+    </script>
+</body>
+</html>

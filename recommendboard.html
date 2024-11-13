@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점메추-추천게시판</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            margin-left: 100px;
+        }
+
+        .logo a {
+            text-decoration: none;
+            font-size: 40px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .profile-menu, .auth-menu {
+            margin-right: -55%;
+            display: none; /* 기본적으로 숨김 */
+        }
+
+        .profile-menu a, .auth-menu a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            margin-right: 100px;
+        }
+
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: #333;
+            margin: 3px 0;
+        }
+
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -500px; /* 기본적으로 화면 밖으로 숨기기 */
+            width: 300px;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-links .logo {
+            margin-bottom: 60px;
+        }
+
+        .nav-links .logo a {
+            font-size: 35px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            padding: 10px 0;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+            width: 100%;
+        }
+
+        .nav-links.active {
+            right: 0; /* 메뉴를 화면으로 슬라이드 인 */
+        }
+
+        .nav-links .sub-menu {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .nav-links .sub-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-links .sub-menu li {
+            margin: 10px 0;
+        }
+
+        .nav-links .sub-menu a {
+            padding-left: 20px;
+            font-size: 20px;
+            display: block;
+        }
+
+        .nav-links .sub-menu.active {
+            display: block;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        h2 {
+            padding-bottom: 10px;
+            border-bottom: 1px solid gray;
+        }
+
+        .aside {
+            width: 300px;
+            float: left;
+            padding-bottom: 20px;
+        }
+
+        .select-grup {
+            width: auto;
+            float: right;
+            text-align: right;
+        }
+
+        .select-text {
+            color: gray;
+            font-size: 120%;
+            font-weight: bolder;
+            padding: 10px;
+        }
+
+        .select-dropbox {
+            height: 25px;
+            font-size: 16px;
+        }
+
+        .select-textbox {
+            height: 20px;
+        }
+
+        table.board-table {
+            width: 100%;
+            border-spacing: 0;
+        }
+
+        .container {
+            width: 1000px;
+            margin: 0 auto;
+        }
+
+        .board-table th {
+            background: #eee;
+            border-top: 2px solid gray;
+            padding: 5px;
+        }
+
+        .board-table td {
+            border-bottom: 1px solid #ccc;
+            padding: 5px;
+            text-align: center;
+        }
+
+        .board-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .page {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .page a {
+            color: black;
+            font-size: 16px;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 5px 10px;
+            border: 2px solid black;
+            border-radius: 5px;
+        }
+
+        .button {
+            float: right;
+            text-align: center;
+        }
+
+        .button-gray {
+            border: 0px;
+            border-radius: 5px;
+            background-color: gray;
+            color: white;
+            font: 12px 굴림;
+            font-weight: bold;
+            width: 60px;
+            height: 30px;
+        }
+
+        .button-black {
+            border: 0px;
+            border-radius: 5px;
+            background-color: rgb(46, 46, 46);
+            color: white;
+            font: 12px 굴림;
+            font-weight: bold;
+            width: 70px;
+            height: 30px;
+        }
+
+        .board-table td a {
+            text-decoration: none;
+            color: black;
+            cursor: pointer;
+        }
+
+        .like-button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: gray;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .like-button.liked {
+            color: #007bff;
+        }
+
+        .like-button span {
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+
+        <div class="profile-menu" id="profileMenu">
+            <a href="profile.html">프로필</a>
+            <a href="logout.html" onclick="logout()">로그아웃</a>
+        </div>
+
+        <div class="auth-menu" id="authMenu">
+            <a href="login.html">로그인</a>
+            <a href="register.html">회원가입</a>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <div class="nav-links" id="navLinks">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+        <a href="notice.html">공지사항</a>
+        <a href="index.html" onclick="toggleBoardMenu(event)">게시판</a>
+        <div class="sub-menu" id="boardMenu">
+            <ul>
+                <li><a href="freeboard.html">자유게시판</a></li>
+                <li><a href="recommendboard.html">추천게시판</a></li>
+            </ul>
+        </div>
+        <a href="suggestions.html">건의사항</a>
+        <a href="instructions.html">이용방법</a>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <article>
+        <div class="container">
+            <h2>추천 게시판</h2>
+
+            <div class="aside">
+                ▷ 총 3개의 게시물이 있습니다.
+            </div>
+
+            <div class="select-grup">
+                <form action="">
+                    <span class="select-text">SELECT</span>
+                    <span>
+                        <select class="select-dropbox">
+                            <option value="s-title">제목</option>
+                            <option value="s-writer">글쓴이</option>
+                            <option value="s-date">일시</option>
+                        </select>
+                    </span>
+                    <span>
+                        <input type="text" name="search" class="select-textbox">
+                        <input type="submit" class="button-black" value="검색" />
+                    </span>
+                </form>
+            </div>
+
+            <table class="board-table">
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>제목</th>
+                        <th>글쓴이</th>
+                        <th>일시</th>
+                        <th>조회수</th>
+                        <th>추천</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr data-recommend="0">
+                        <td>1</td>
+                        <td><a href="#" onclick="handlePostClick(1)">게시글 1 입니다.</a></td>
+                        <td>김준석</td>
+                        <td>2024.09.01</td>
+                        <td>12</td>
+                        <td>
+                            <button id="like-1" class="like-button" onclick="handleLike(1)">
+                                👍 <span id="like-count-1">0</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr data-recommend="0">
+                        <td>2</td>
+                        <td><a href="#" onclick="handlePostClick(2)">게시글 2 입니다.</a></td>
+                        <td>이승환</td>
+                        <td>2024.09.02</td>
+                        <td>8</td>
+                        <td>
+                            <button id="like-2" class="like-button" onclick="handleLike(2)">
+                                👍 <span id="like-count-2">0</span>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr data-recommend="0">
+                        <td>3</td>
+                        <td><a href="#" onclick="handlePostClick(3)">게시글 3 입니다.</a></td>
+                        <td>박지민</td>
+                        <td>2024.09.03</td>
+                        <td>22</td>
+                        <td>
+                            <button id="like-3" class="like-button" onclick="handleLike(3)">
+                                👍 <span id="like-count-3">0</span>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="page">
+                <a href="#">◀</a>
+                <a href="#">1</a>
+                <a href="#">2</a>
+                <a href="#">3</a>
+                <a href="#">▶</a>
+            </div>
+
+            <div class="button">
+                <span><input type="button" class="button-gray" value="글쓰기" onclick="handleWriteButton()"></span>
+            </div>
+        </div>
+    </article>
+
+    <script>
+        let isLoggedIn = false; // 로그인 상태를 가정 (실제로는 서버에서 가져와야 함)
+        let likedPosts = JSON.parse(localStorage.getItem('likedPosts')) || {};
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const profileMenu = document.getElementById('profileMenu');
+            
+            navLinks.classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+            
+            // 로그인 상태에 따라 프로필 메뉴 보이기/숨기기
+            if (isLoggedIn) {
+                profileMenu.style.display = profileMenu.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        function toggleBoardMenu(event) {
+            event.preventDefault();
+            const boardMenu = document.getElementById('boardMenu');
+            boardMenu.classList.toggle('active');
+        }
+
+        function handlePostClick(postId) {
+            // 게시물 클릭 시 동작 정의
+            console.log('Post clicked:', postId);
+        }
+
+        function handleLike(postId) {
+            if (!isLoggedIn) {
+                alert("로그인을 해주십시오");
+                return;
+            }
+
+            const button = document.getElementById(`like-${postId}`);
+            const likeCountSpan = document.getElementById(`like-count-${postId}`);
+
+            const isLiked = likedPosts[postId]?.isLiked || false;
+            const likeCount = likedPosts[postId]?.count || 0;
+
+            likedPosts[postId] = {
+                isLiked: !isLiked,
+                count: isLiked ? likeCount - 1 : likeCount + 1
+            };
+
+            if (likedPosts[postId].isLiked) {
+                button.classList.add('liked');
+            } else {
+                button.classList.remove('liked');
+            }
+
+            likeCountSpan.textContent = likedPosts[postId].count;
+
+            localStorage.setItem('likedPosts', JSON.stringify(likedPosts));
+
+            const row = button.closest('tr');
+            row.setAttribute('data-recommend', likedPosts[postId].count);
+
+            sortPostsByLikes();
+        }
+
+        function sortPostsByLikes() {
+            const tableBody = document.querySelector('.board-table tbody');
+            const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                const likesA = parseInt(a.getAttribute('data-recommend'), 10);
+                const likesB = parseInt(b.getAttribute('data-recommend'), 10);
+                return likesB - likesA;
+            });
+
+            rows.forEach(row => tableBody.appendChild(row));
+
+            rows.forEach((row, index) => {
+                row.querySelector('td').textContent = index + 1;
+            });
+        }
+
+        function handleWriteButton() {
+            if (!isLoggedIn) {
+                alert("로그인을 해주십시오");
+            } else {
+                window.location.href = 'write2.html';
+            }
+        }
+
+        function logout() {
+            isLoggedIn = false;
+            updateProfileMenu();
+            updateAuthMenu();
+        }
+
+        function updateProfileMenu() {
+            const profileMenu = document.getElementById('profileMenu');
+            if (isLoggedIn) {
+                profileMenu.style.display = 'block';
+            } else {
+                profileMenu.style.display = 'none';
+            }
+        }
+
+        function updateAuthMenu() {
+            const authMenu = document.getElementById('authMenu');
+            if (!isLoggedIn) {
+                authMenu.style.display = 'block';
+            } else {
+                authMenu.style.display = 'none';
+            }
+        }
+
+        window.onload = function() {
+            Object.keys(likedPosts).forEach(postId => {
+                const button = document.getElementById(`like-${postId}`);
+                const likeCountSpan = document.getElementById(`like-count-${postId}`);
+                if (likedPosts[postId].isLiked) {
+                    button.classList.add('liked');
+                } else {
+                    button.classList.remove('liked');
+                }
+                likeCountSpan.textContent = likedPosts[postId].count;
+
+                const row = button.closest('tr');
+                row.setAttribute('data-recommend', likedPosts[postId].count);
+            });
+
+            sortPostsByLikes();
+            updateProfileMenu();
+            updateAuthMenu(); // 로그인 상태에 따른 메뉴 업데이트
+        }
+    </script>
+</body>
+
+</html>

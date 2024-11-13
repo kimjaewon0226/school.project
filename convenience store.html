@@ -1,0 +1,542 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점메추-키워드 기반 장소 검색</title>
+    <style>
+        /* 페이지 전체 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 헤더 스타일 */
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+
+        .profile-menu, .auth-menu {
+            margin-right: 20px;
+        }
+
+        .profile-menu a, .auth-menu a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        /* 로고 스타일 */
+        .logo {
+            font-size: 40px;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        .logo a {
+            text-decoration: none;
+            color: #ffffff;
+        }
+
+        /* 제목 스타일 */
+        header h1 {
+            flex: 1;
+            text-align: center;
+            margin: 0;
+            font-size: 24px;
+        }
+
+        /* 햄버거 메뉴 스타일 */
+        .hamburger {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            margin-right: 20px;
+        }
+
+        .hamburger div {
+            background-color: white;
+            height: 3px;
+            width: 30px;
+            margin: 3px 0;
+            border-radius: 2px;
+        }
+
+        /* 사이드 메뉴 스타일 */
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -300px; /* 메뉴가 숨겨져 있는 상태 */
+            width: 250px;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-links .logo {
+            margin-bottom: 60px;
+        }
+
+        .nav-links .logo a {
+            font-size: 35px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            padding: 10px 0;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+            width: 100%;
+        }
+
+        .nav-links.active {
+            right: 0; /* 메뉴가 표시될 때 */
+        }
+
+        /* 오버레이 스타일 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 지도 영역 스타일 */
+        #map {
+            width: 70%;
+            height: 800px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #999;
+            margin: 0 auto; /* 수평 가운데 정렬 */
+        }
+
+        /* 편의점 목록 스타일 */
+        #stores {
+            padding: 20px;
+            background-color: #f9f9f9;
+            margin-left: 25%;
+            margin-right: 25%;
+        }
+
+        .store-item {
+            background-color: white;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+        }
+
+        .store-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* 게시판 슬라이드 스타일 */
+        .board-menu {
+            display: none;
+            flex-direction: column;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background-color: #f4f4f4;
+        }
+
+        .board-menu a {
+            padding: 10px 0;
+            font-size: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .board-menu.active {
+            display: flex;
+        }
+
+        /* 모바일 대응 */
+        @media screen and (max-width: 600px) {
+            #map {
+                height: 300px;
+            }
+        }
+
+        /* 추가된 스타일 */
+        .map_wrap, .map_wrap * {margin:0;padding:0;font-family:'Malgun Gothic',dotum,'돋움',sans-serif;font-size:12px;}
+        .map_wrap a, .map_wrap a:hover, .map_wrap a:active{color:#000;text-decoration: none;}
+        .map_wrap {position:relative;width:100%;height:800px;}
+        #menu_wrap {position:absolute;top:0;left:0;bottom:0;width:250px;margin:10px 0 30px 10px;padding:5px;overflow-y:auto;background:rgba(255, 255, 255, 0.7);z-index: 1;font-size:12px;border-radius: 10px;}
+        .bg_white {background:#fff;}
+        #menu_wrap hr {display: block; height: 1px;border: 0; border-top: 2px solid #5F5F5F;margin:3px 0;}
+        #menu_wrap .option{text-align: center;}
+        #menu_wrap .option p {margin:10px 0;}  
+        #menu_wrap .option button {margin-left:5px;}
+        #placesList li {list-style: none;}
+        #placesList .item {position:relative;border-bottom:1px solid #888;overflow: hidden;cursor: pointer;min-height: 65px;}
+        #placesList .item span {display: block;margin-top:4px;}
+        #placesList .item h5, #placesList .item .info {text-overflow: ellipsis;overflow: hidden;white-space: nowrap;}
+        #placesList .item .info{padding:10px 0 10px 55px;}
+        #placesList .info .gray {color:#8a8a8a;}
+        #placesList .info .jibun {padding-left:26px;background:url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/places_jibun.png) no-repeat;}
+        #placesList .info .tel {color:#009900;}
+        #placesList .item .markerbg {float:left;position:absolute;width:36px; height:37px;margin:10px 0 0 10px;background:url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png) no-repeat;}
+        #placesList .item .marker_1 {background-position: 0 -10px;}
+        #placesList .item .marker_2 {background-position: 0 -56px;}
+        #placesList .item .marker_3 {background-position: 0 -102px}
+        #placesList .item .marker_4 {background-position: 0 -148px;}
+        #placesList .item .marker_5 {background-position: 0 -194px;}
+        #placesList .item .marker_6 {background-position: 0 -240px;}
+        #placesList .item .marker_7 {background-position: 0 -286px;}
+        #placesList .item .marker_8 {background-position: 0 -332px;}
+        #placesList .item .marker_9 {background-position: 0 -378px;}
+        #placesList .item .marker_10 {background-position: 0 -423px;}
+        #placesList .item .marker_11 {background-position: 0 -470px;}
+        #placesList .item .marker_12 {background-position: 0 -516px;}
+        #placesList .item .marker_13 {background-position: 0 -562px;}
+        #placesList .item .marker_14 {background-position: 0 -608px;}
+        #placesList .item .marker_15 {background-position: 0 -654px;}
+        #pagination {margin:10px auto;text-align: center;}
+        #pagination a {display:inline-block;margin-right:10px;}
+        #pagination .on {font-weight: bold; cursor: default;color:#777;}
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <a href="home.jsp">점메추</a>
+    </div>
+
+    <h1>키워드 기반 장소 검색</h1>
+
+    <!-- 로그인 상태에 따라 표시되는 메뉴 -->
+    <div class="profile-menu" id="profileMenu">
+        <a href="profile.jsp">프로필</a>
+        <a href="logout.jsp" onclick="logout()">로그아웃</a>
+    </div>
+
+    <div class="auth-menu" id="authMenu">
+        <a href="login.jsp">로그인</a>
+        <a href="register.jsp">회원가입</a>
+    </div>
+
+    <div class="hamburger" onclick="toggleMenu()">
+        <div></div>
+        <div></div>
+        <div></div>
+    </div>
+</header>
+
+<div class="nav-links" id="navLinks">
+    <div class="logo">
+        <a href="home.jsp">점메추</a>
+    </div>
+    <a href="notice.jsp">공지사항</a>
+    <a href="home.jsp" onclick="toggleBoardMenu(event)">게시판</a>
+    
+    <div class="board-menu" id="boardMenu">
+        <a href="freeboard.jsp">자유게시판</a>
+        <a href="recommendboard.jsp">추천게시판</a>
+    </div>
+
+    <a href="suggestions.jsp">건의사항</a>
+    <a href="instructions.jsp">이용방법</a>
+</div>
+
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+<br>
+<!-- 지도 영역 -->
+<div class="map_wrap">
+    <div id="map" style="width:70%;height:100%;position:relative;overflow:hidden;"></div>
+
+    <div id="menu_wrap" class="bg_white">
+        <div class="option">
+            <div>
+                <form onsubmit="searchPlaces(); return false;">
+                    키워드 : <input type="text" value="동서울대 맛집" id="keyword" size="15"> 
+                    <button type="submit">검색하기</button> 
+                </form>
+            </div>
+        </div>
+        <hr>
+        <ul id="placesList"></ul>
+        <div id="pagination"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=65bfd285241c410022af0832539f0483&libraries=services"></script>
+<script>
+    // 로그인 상태 확인 변수
+    let isLoggedIn = false; // 실제 로그인 여부에 따라 서버에서 이 값이 결정되도록 해야 합니다.
+    let map;
+    let currentPosition;
+
+    // 햄버거 메뉴 클릭 시 메뉴 열기/닫기
+    function toggleMenu() {
+        const navLinks = document.getElementById('navLinks');
+        navLinks.classList.toggle('active');
+        document.getElementById('overlay').classList.toggle('active');
+
+        updateProfileMenu();
+        updateAuthMenu();
+    }
+
+    // 로그아웃 함수
+    function logout() {
+        isLoggedIn = false; // 실제로는 서버에서 로그아웃 처리가 필요합니다.
+        updateProfileMenu();
+        updateAuthMenu();
+    }
+
+    // 로그인 상태에 따라 프로필 메뉴 보이기/숨기기
+    function updateProfileMenu() {
+        const profileMenu = document.getElementById('profileMenu');
+        profileMenu.style.display = isLoggedIn ? 'block' : 'none';
+    }
+
+    // 로그인 상태에 따라 인증 메뉴 보이기/숨기기
+    function updateAuthMenu() {
+        const authMenu = document.getElementById('authMenu');
+        authMenu.style.display = isLoggedIn ? 'none' : 'block';
+    }
+
+    window.onload = function() {
+        updateProfileMenu();
+        updateAuthMenu();
+
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+            center: new kakao.maps.LatLng(37.566826, 126.9786567), // 서울시청 좌표
+            level: 3
+        };
+
+        map = new kakao.maps.Map(mapContainer, mapOption);
+        getCurrentLocation();
+    };
+
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                currentPosition = new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude);
+                map.setCenter(currentPosition);
+            }, function() {
+                alert('위치를 가져오는 데 실패했습니다.');
+            });
+        } else {
+            alert('이 브라우저는 Geolocation을 지원하지 않습니다.');
+        }
+    }
+
+    function findNearbyStores(storeName) {
+        const ps = new kakao.maps.services.Places();
+        ps.keywordSearch(storeName, placesSearchCB, { location: currentPosition, radius: 1000 });
+    }
+
+    function placesSearchCB(data, status, pagination) {
+        if (status === kakao.maps.services.Status.OK) {
+            const storesDiv = document.getElementById('stores');
+            storesDiv.innerHTML = ''; // 기존 목록 초기화
+
+            for (let i = 0; i < data.length; i++) {
+                const store = data[i];
+                const storeItem = document.createElement('div');
+                storeItem.className = 'store-item';
+                storeItem.innerHTML = `${i + 1}. ${store.place_name} (${store.address_name})`;
+                storesDiv.appendChild(storeItem);
+
+                // 마커 추가
+                const marker = new kakao.maps.Marker({
+                    position: new kakao.maps.LatLng(store.y, store.x),
+                    map: map
+                });
+            }
+        } else {
+            alert('편의점을 찾을 수 없습니다.');
+        }
+    }
+
+    function toggleBoardMenu(event) {
+        event.preventDefault();
+        const boardMenu = document.getElementById('boardMenu');
+        boardMenu.classList.toggle('active');
+    }
+
+    // Kakao 지도 API를 이용한 키워드 검색 및 마커 표시
+    var markers = [];
+    var ps = new kakao.maps.services.Places();  
+    var infowindow = new kakao.maps.InfoWindow({zIndex:1});
+
+    function searchPlaces() {
+        var keyword = document.getElementById('keyword').value;
+        if (!keyword.replace(/^\s+|\s+$/g, '')) {
+            alert('키워드를 입력해주세요!');
+            return false;
+        }
+        ps.keywordSearch(keyword, placesSearchCB); 
+    }
+
+    function placesSearchCB(data, status, pagination) {
+        if (status === kakao.maps.services.Status.OK) {
+            displayPlaces(data);
+            displayPagination(pagination);
+        } else if (status === kakao.maps.services.Status.ZERO_RESULT) {
+            alert('검색 결과가 존재하지 않습니다.');
+        } else if (status === kakao.maps.services.Status.ERROR) {
+            alert('검색 결과 중 오류가 발생했습니다.');
+        }
+    }
+
+    function displayPlaces(places) {
+        var listEl = document.getElementById('placesList'), 
+            menuEl = document.getElementById('menu_wrap'),
+            fragment = document.createDocumentFragment(), 
+            bounds = new kakao.maps.LatLngBounds(); 
+        
+        removeAllChildNods(listEl);
+        removeMarker();
+
+        for ( var i=0; i<places.length; i++ ) {
+            var placePosition = new kakao.maps.LatLng(places[i].y, places[i].x),
+                marker = addMarker(placePosition, i), 
+                itemEl = getListItem(i, places[i]);
+
+            bounds.extend(placePosition);
+
+            (function(marker, title) {
+                kakao.maps.event.addListener(marker, 'mouseover', function() {
+                    displayInfowindow(marker, title);
+                });
+                kakao.maps.event.addListener(marker, 'mouseout', function() {
+                    infowindow.close();
+                });
+                itemEl.onmouseover =  function () {
+                    displayInfowindow(marker, title);
+                };
+                itemEl.onmouseout =  function () {
+                    infowindow.close();
+                };
+            })(marker, places[i].place_name);
+
+            fragment.appendChild(itemEl);
+        }
+        listEl.appendChild(fragment);
+        menuEl.scrollTop = 0;
+        map.setBounds(bounds);
+    }
+
+    function getListItem(index, places) {
+        var el = document.createElement('li'),
+            itemStr = '<span class="markerbg marker_' + (index+1) + '"></span>' +
+                      '<div class="info">' +
+                      '   <h5>' + places.place_name + '</h5>';
+
+        if (places.road_address_name) {
+            itemStr += '    <span>' + places.road_address_name + '</span>' +
+                        '   <span class="jibun gray">' +  places.address_name  + '</span>';
+        } else {
+            itemStr += '    <span>' +  places.address_name  + '</span>'; 
+        }
+        itemStr += '  <span class="tel">' + places.phone  + '</span>' +
+                  '</div>';           
+        el.innerHTML = itemStr;
+        el.className = 'item';
+        return el;
+    }
+
+    function addMarker(position, idx) {
+        var imageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png', 
+            imageSize = new kakao.maps.Size(36, 37),  
+            imgOptions =  {
+                spriteSize : new kakao.maps.Size(36, 691), 
+                spriteOrigin : new kakao.maps.Point(0, (idx*46)+10), 
+                offset: new kakao.maps.Point(13, 37)
+            },
+            markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imgOptions),
+            marker = new kakao.maps.Marker({
+                position: position,
+                image: markerImage 
+            });
+
+        marker.setMap(map);
+        markers.push(marker);  
+        return marker;
+    }
+
+    function removeMarker() {
+        for ( var i = 0; i < markers.length; i++ ) {
+            markers[i].setMap(null);
+        }   
+        markers = [];
+    }
+
+    function displayPagination(pagination) {
+        var paginationEl = document.getElementById('pagination'),
+            fragment = document.createDocumentFragment(),
+            i; 
+
+        while (paginationEl.hasChildNodes()) {
+            paginationEl.removeChild (paginationEl.lastChild);
+        }
+
+        for (i=1; i<=pagination.last; i++) {
+            var el = document.createElement('a');
+            el.href = "#";
+            el.innerHTML = i;
+
+            if (i===pagination.current) {
+                el.className = 'on';
+            } else {
+                el.onclick = (function(i) {
+                    return function() {
+                        pagination.gotoPage(i);
+                    }
+                })(i);
+            }
+            fragment.appendChild(el);
+        }
+        paginationEl.appendChild(fragment);
+    }
+
+    function displayInfowindow(marker, title) {
+        var content = '<div style="padding:5px;z-index:1;">' + title + '</div>';
+        infowindow.setContent(content);
+        infowindow.open(map, marker);
+    }
+
+    function removeAllChildNods(el) {   
+        while (el.hasChildNodes()) {
+            el.removeChild (el.lastChild);
+        }
+    }
+</script>
+</body>
+</html>

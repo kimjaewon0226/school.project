@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>점메추 - 공지글쓰기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .logo {
+            margin-left: 100px;
+        }
+
+        .logo a {
+            text-decoration: none;
+            font-size: 40px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .profile-menu, .auth-buttons {
+            display: none; /* 기본적으로 숨김 */
+            margin-right: -55%;
+        }
+
+        .profile-menu a, .auth-buttons a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            margin-right: 100px;
+        }
+
+        .hamburger div {
+            width: 30px;
+            height: 3px;
+            background-color: #333;
+            margin: 3px 0;
+        }
+
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -340px;
+            width: 300px;
+            height: 100%;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.5);
+            transition: right 0.3s ease;
+            z-index: 1000;
+        }
+
+        .nav-links .logo {
+            margin-bottom: 60px;
+        }
+
+        .nav-links .logo a {
+            font-size: 35px;
+            font-weight: bold;
+            color: #333;
+            text-decoration: none;
+        }
+
+        .nav-links a {
+            padding: 10px 0;
+            font-size: 22px;
+            text-decoration: none;
+            color: #000;
+            width: 100%;
+        }
+
+        .nav-links.active {
+            right: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .container-wrapper {
+            position: relative;
+            width: 50%;
+            margin: 20px auto;
+            margin-top: 10%;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 3%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            border: 2px solid #333;
+        }
+
+        .container h1 {
+            position: absolute;
+            top: -100px;
+            left: 20px;
+            font-size: 32px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            height: 150px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .button-container button, .button-container .back-button {
+            background-color: #333;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            text-decoration: none;
+            line-height: 1;
+            display: inline-block;
+        }
+
+        .button-container button:hover, .button-container .back-button:hover {
+            background-color: #555;
+        }
+
+        .back-button {
+            background-color: transparent;
+            color: #333;
+        }
+
+        .back-button:hover {
+            text-decoration: underline;
+        }
+
+        .submenu {
+            display: none; /* 기본적으로 숨김 */
+            padding: 10px;
+            background-color: #ddd;
+            border-radius: 4px;
+        }
+
+        .submenu.active {
+            display: block; /* 활성화되면 표시 */
+        }
+
+        .submenu-content {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .submenu-content li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .submenu-content li:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+
+        <div class="auth-buttons" id="authButtons">
+            <a href="login.html">로그인</a>
+            <a href="register.html">회원가입</a>
+        </div>
+
+        <div class="profile-menu" id="profileMenu">
+            <a href="profile.html">프로필</a>
+            <a href="logout.html" onclick="logout()">로그아웃</a>
+        </div>
+
+        <div class="hamburger" onclick="toggleMenu()">
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+    </header>
+
+    <div class="nav-links" id="navLinks">
+        <div class="logo">
+            <a href="index.html">점메추</a>
+        </div>
+        <a href="notice.html">공지사항</a>
+        <a href="#" onclick="toggleSubmenu('boardSubmenu')">게시판</a>
+        <div class="submenu" id="boardSubmenu">
+            <ul class="submenu-content">
+                <li><a href="freeboard.html">자유게시판</a></li>
+                <li><a href="recommendboard.html">추천게시판</a></li>
+            </ul>
+        </div>
+        <a href="suggestions.html">건의사항</a>
+        <a href="instructions.html">이용방법</a>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <div class="container-wrapper">
+        <div class="container">
+            <h1>공지 글쓰기</h1>
+            <form id="noticeForm" action="/submit_notice" method="post">
+                <div class="form-group">
+                    <label for="title">제목</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="content">내용</label>
+                    <textarea id="content" name="content" required></textarea>
+                </div>
+                <div class="button-container">
+                    <a href="notice.html" class="back-button">뒤로 가기</a>
+                    <button type="submit">제출</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let isLoggedIn = false; // 로그인 상태를 가정 (실제로는 서버에서 가져와야 함)
+
+        function toggleMenu() {
+            const navLinks = document.getElementById('navLinks');
+            const profileMenu = document.getElementById('profileMenu');
+            const authButtons = document.getElementById('authButtons');
+
+            navLinks.classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+
+            // 로그인 상태에 따라 프로필 메뉴 보이기/숨기기
+            if (isLoggedIn) {
+                profileMenu.style.display = 'block';
+                authButtons.style.display = 'none'; // 로그인 시 버튼 숨김
+            } else {
+                profileMenu.style.display = 'none';
+                authButtons.style.display = 'flex'; // 비로그인 시 버튼 표시
+            }
+        }
+
+        function toggleSubmenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            if (submenu) { // submenu가 존재하는지 확인
+                submenu.classList.toggle('active');
+            }
+        }
+
+        // 로그인 상태에 따라 프로필 메뉴 표시
+        window.onload = function() {
+            const profileMenu = document.getElementById('profileMenu');
+            const authButtons = document.getElementById('authButtons');
+            if (isLoggedIn) {
+                profileMenu.style.display = 'block';
+                authButtons.style.display = 'none'; // 로그인 상태일 때 버튼 숨김
+            } else {
+                profileMenu.style.display = 'none';
+                authButtons.style.display = 'flex'; // 비로그인 상태일 때 버튼 표시
+            }
+        };
+
+        // 공지사항 폼 제출 이벤트
+        const noticeForm = document.getElementById('noticeForm');
+        if (noticeForm) { // noticeForm이 존재하는지 확인
+            noticeForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // 기본 폼 제출을 막습니다.
+                if (confirm('제출 완료! 확인을 누르면 공지사항 페이지로 이동합니다.')) {
+                    window.location.href = 'notice.html'; // 확인 후 공지사항 페이지로 이동
+                }
+            });
+        }
+    </script>
+</body>
+</html>
